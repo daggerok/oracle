@@ -9,17 +9,17 @@ env:
 install: true
 before_install:
 - sudo apt update -y >/dev/null 2>&1 || true
-- sudo apt install -y --no-install-recommends wget unzip bash >/dev/null 2>&1 || true
+- sudo apt install -y --no-install-recommends curl wget unzip bash >/dev/null 2>&1 || true
+- source <(curl -s https://raw.githubusercontent.com/daggerok/bash-functions/master/main.bash)
+- stop_any 1521 8080 80
 script:
 - export root=$(pwd)
 - wget -O docker-images-master.zip https://codeload.github.com/oracle/docker-images/zip/master
 - unzip docker-images-master.zip
-- ls -lah .
-- ls -lah ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/
 - wget -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/oracle-xe-11.2.0-1.0.x86_64.rpm.zip https://github.com/daggerok/oracle/releases/download/11.2.0-1.0/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
 - cd ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/ && bash ./buildDockerImage.sh -v 11.2.0.2 -x
 - |
-  if [ "${TRAVIS_BRANCH}" == "master" ]; then
+  if [ "master" == "${TRAVIS_BRANCH}" ]; then
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-7-slim
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-oraclelinux
@@ -32,3 +32,13 @@ script:
   fi
 - echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 - docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
+- export SPRING_DATASOURCE_PASSWORD=$(date +%Y-%m-%d)
+- docker pull daggerok/oracle
+- docker run -d --rm --name oracle-xe \
+    --shm-size=1g \
+    -p 1521:1521 \
+    -e ORACLE_PWD=$SPRING_DATASOURCE_PASSWORD \
+    daggerok/oracle
+- wait_for 1521
+- sleep 90
+- bash app/gradlew -b app/build.gradle ; bash app/build/libs/*.jar

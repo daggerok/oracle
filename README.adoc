@@ -1,6 +1,88 @@
 = Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/oracle"]
 Automation build for docker hub
 
-NOTE: you can build same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
+NOTE: you can build and prepare same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
+
+.usage (docker)
+[sources,bash]
+----
+docker volume create oracle-xe-data
+docker run -d --rm --name oracle-xe \
+  --shm-size=1g \
+  -p 1521:1521 \
+  -e ORACLE_PWD=password \
+  daggerok/oracle
+
+Parameters:
+  --name         The name of the container (default: auto generated)
+  --shm-size     Amount of Linux shared memory
+  -p             The port mapping of the host port to the container port.
+                 Two ports are exposed: 1521 (Oracle Listener), 8080 (APEX)
+  -e ORACLE_PWD  The Oracle Database SYS, SYSTEM and PDB_ADMIN password (default: auto generated)
+
+  -v /u01/app/oracle/oradata
+
+                 The data volume to use for the database.
+                 Has to be writable by the Unix "oracle" (uid: 54321) user inside the container!
+                 If omitted the database will not be persisted over container recreation.
+
+  -v /u01/app/oracle/scripts/startup | /docker-entrypoint-initdb.d
+  -v /u01/app/oracle/scripts/setup   | /docker-entrypoint-initdb.d
+
+                 Optional: A volume with custom scripts to be run after database startup.
+                 For further details see the "Running scripts after setup and on startup" section below.
+----
+
+.usage (docker-compose)
+[sources,yaml]
+----
+version: "2.1"
+
+services:
+  oracle-xe:
+    image: daggerok/oracle
+    environment:
+      ORACLE_PWD: password
+    ports:
+    - "1521:1521"
+    - "8080:8080"
+    volumes:
+    - "oracle-xe-data:/u01/app/oracle/oradata"
+    - "./db-startup-migration-scripts:/u01/app/oracle/scripts/startup"
+    - "./db-setup-migration-scripts:/u01/app/oracle/scripts/setup
+    networks: [backing-services]
+    restart: unless-stopped
+----
+
+Running scripts after setup and on startup
+
+The docker images can be configured to run scripts after setup and on startup.
+Currently sh and sql extensions are supported.
+For post-setup scripts just mount the volume /opt/oracle/scripts/setup or extend the image to include scripts in this directory.
+For post-startup scripts just mount the volume /opt/oracle/scripts/startup or extend the image to include scripts in this directory.
+Both of those locations are also represented under the symbolic link /docker-entrypoint-initdb.d.
+This is done to provide synergy with other database Docker images. The user is free to decide whether he wants to put his setup and startup scripts under /opt/oracle/scripts or /docker-entrypoint-initdb.d.
+
+After the database is setup and/or started the scripts in those folders will be executed against the database in the container.
+SQL scripts will be executed as sysdba, shell scripts will be executed as the current user.
+To ensure proper order it is recommended to prefix your scripts with a number.
+For example, in Flyway-style:
+
+- V201711031__app_v1_initial_DDL.sql
+- V201711032__app_v1_initial_DML.sql
+- V201804021__app_v2_migration_scripts.sql
+- ...
+
+Note: The startup scripts will also be executed after the first time database setup is complete.
+
+.The example below mounts the local directory ./migrations to /opt/oracle/migration-scripts which is then searched for custom startup scripts:
+[sources,bash]
+----
+docker run --rm --name oracle-xe \
+  -p 1521:1521 \
+  -v $PWD/migrations:/opt/oracle/scripts/startup \
+  -v /home/oracle/oradata:/opt/oracle/oradata \
+  daggerok/oracle
+----
 
 TODO: add travis tests using some spring-boot / java app requires oracle database connection...
