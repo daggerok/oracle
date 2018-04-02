@@ -16,15 +16,9 @@ Thumbs.db
 *.log*
 .DS_Store
 Thumbs.db
-*.class
 *.ctxt
 .mtj.tmp/
 ^.mtj.tmp/*
 .mtj.tmp
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
 hs_err_pid*
+mvn-repo

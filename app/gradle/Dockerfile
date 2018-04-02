@@ -25,12 +25,6 @@ ARG JAVA_OPTS_ARGS="\
 ENV JAVA_OPTS="${JAVA_OPTS} ${JAVA_OPTS_ARGS}"
 ENTRYPOINT java ${JAVA_OPTS} -jar ./app.jar
 CMD /bin/bash
-#ENTRYPOINT java -XX:+UnlockExperimentalVMOptions \
-#                -XX:+UseCGroupMemoryLimitForHeap \
-#                -XshowSettings:vm \
-#                -Djava.net.preferIPv4Stack=true \
-#                -jar ./app.jar
-#CMD /bin/bash
 EXPOSE 8080
 HEALTHCHECK --timeout=2s \
             --retries=22 \
