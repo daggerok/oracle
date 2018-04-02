@@ -6,7 +6,6 @@ NOTE: you can build and prepare same image by yourselves. link:https://github.co
 .usage (docker)
 [sources,bash]
 ----
-docker volume create oracle-xe-data
 docker run -d --rm --name oracle-xe \
   --shm-size=1g \
   -p 1521:1521 \
@@ -33,7 +32,7 @@ Parameters:
                  For further details see the "Running scripts after setup and on startup" section below.
 ----
 
-.usage (docker-compose)
+.docker-compose usage (simple)
 [sources,yaml]
 ----
 version: "2.1"
@@ -41,6 +40,26 @@ version: "2.1"
 services:
   oracle-xe:
     image: daggerok/oracle
+    environment:
+      ORACLE_PWD: password
+    shm_size: 1g
+    ports: ["1521:1521"]
+    networks: [backing-services]
+
+networks:
+  backing-services:
+    driver: bridge
+----
+
+.docker-compose usage (advanced)
+[sources,yaml]
+----
+version: "2.1"
+
+services:
+  oracle-xe:
+    image: daggerok/oracle
+    shm_size: 1g
     environment:
       ORACLE_PWD: password
     ports:
@@ -52,9 +71,25 @@ services:
     - "./db-setup-migration-scripts:/u01/app/oracle/scripts/setup
     networks: [backing-services]
     restart: unless-stopped
+
+volumes:
+  oracle-xe-data: {}
+
+networks:
+  backing-services:
+    driver: bridge
 ----
 
-Running scripts after setup and on startup
+
+.Running scripts after setup and on startup. Example mounts the local directory `./migrations` to `/opt/oracle/migration-scripts` which is then searched for custom startup scripts:
+[sources,bash]
+----
+docker run --rm --name oracle-xe \
+  -p 1521:1521 \
+  -v $PWD/migrations:/opt/oracle/scripts/startup \
+  -v /home/oracle/oradata:/opt/oracle/oradata \
+  daggerok/oracle
+----
 
 The docker images can be configured to run scripts after setup and on startup.
 Currently sh and sql extensions are supported.
@@ -74,15 +109,3 @@ For example, in Flyway-style:
 - ...
 
 Note: The startup scripts will also be executed after the first time database setup is complete.
-
-.The example below mounts the local directory ./migrations to /opt/oracle/migration-scripts which is then searched for custom startup scripts:
-[sources,bash]
-----
-docker run --rm --name oracle-xe \
-  -p 1521:1521 \
-  -v $PWD/migrations:/opt/oracle/scripts/startup \
-  -v /home/oracle/oradata:/opt/oracle/oradata \
-  daggerok/oracle
-----
-
-TODO: add travis tests using some spring-boot / java app requires oracle database connection...

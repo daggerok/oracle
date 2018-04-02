@@ -27,13 +27,18 @@
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>codelds</id>
+      <url>https://code.lds.org/nexus/content/groups/main-repo</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>com.oracle</groupId>
-      <artifactId>odbc6</artifactId>
-      <version>11.2.0.4.0</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/libs/ojdbc6.jar</systemPath>
+      <artifactId>ojdbc6</artifactId>
+      <version>11.2.0.3</version>
     </dependency>
 
     <dependency>
@@ -44,10 +49,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-rest</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
@@ -181,24 +182,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.19.1</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-surefire-provider</artifactId>
-            <version>${junit.platform.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-
-      <plugin>
         <groupId>com.dkanejs.maven.plugins</groupId>
         <artifactId>docker-compose-maven-plugin</artifactId>
         <version>1.0.1</version>
@@ -219,7 +202,7 @@
           </execution>
         </executions>
         <configuration>
-          <composeFile>${project.basedir}/docker-compose-maven.yaml</composeFile>
+          <composeFile>${project.basedir}/docker-compose.yaml</composeFile>
           <detachedMode>true</detachedMode>
           <removeVolumes>true</removeVolumes>
           <detail>true</detail>

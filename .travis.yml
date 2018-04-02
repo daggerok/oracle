@@ -12,33 +12,69 @@ before_install:
 - sudo apt install -y --no-install-recommends curl wget unzip bash >/dev/null 2>&1 || true
 - source <(curl -s https://raw.githubusercontent.com/daggerok/bash-functions/master/main.bash)
 - stop_any 1521 8080 80
+
 script:
+
+# build
 - export root=$(pwd)
-- wget -O docker-images-master.zip https://codeload.github.com/oracle/docker-images/zip/master
+- wget -q -O docker-images-master.zip https://codeload.github.com/oracle/docker-images/zip/master
 - unzip docker-images-master.zip
-- wget -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/oracle-xe-11.2.0-1.0.x86_64.rpm.zip https://github.com/daggerok/oracle/releases/download/11.2.0-1.0/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
-- cd ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/ && bash ./buildDockerImage.sh -v 11.2.0.2 -x
+- wget -q -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/oracle-xe-11.2.0-1.0.x86_64.rpm.zip https://github.com/daggerok/oracle/releases/download/11.2.0-1.0/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+- cd ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/
+- bash ./buildDockerImage.sh -v 11.2.0.2 -x
+
+# tag
+- export CURRENT_DATE=$(date +%Y-%m-%d)
 - |
   if [ "master" == "${TRAVIS_BRANCH}" ]; then
+    docker tag oracle/database:11.2.0.2-xe ${CURRENT_DATE}:for-test
+    docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-7-slim
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-oraclelinux
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-oraclelinux-7-slim
   else
+    docker tag oracle/database:11.2.0.2-xe ${CURRENT_DATE}:for-test
     docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}
     docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}-7-slim
     docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}-oraclelinux
     docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}-oraclelinux-7-slim
   fi
-- echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
-- docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
-- export SPRING_DATASOURCE_PASSWORD=$(date +%Y-%m-%d)
-- docker pull daggerok/oracle
-- docker run -d --rm --name oracle-xe \
+
+# test image
+- export SPRING_DATASOURCE_PASSWORD=${CURRENT_DATE}
+- docker images
+- >
+  docker run -d --rm --name oracle-xe \
     --shm-size=1g \
     -p 1521:1521 \
     -e ORACLE_PWD=$SPRING_DATASOURCE_PASSWORD \
-    daggerok/oracle
+    ${CURRENT_DATE}:for-test
 - wait_for 1521
-- sleep 90
-- bash app/gradlew -b app/build.gradle ; bash app/build/libs/*.jar
+- docker logs -f oracle-xe &
+- sleep 150
+- bash ${root}/app/gradlew -b ${root}/app/build.gradle >/dev/null 2>&1
+- bash ${root}/app/build/libs/*.jar
+- docker rm -f -v oracle-xe
+
+after_success:
+
+# push OK image
+- echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+- docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
+
+# finally test pushed image
+- docker pull ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
+- >
+  docker run -d --rm --name oracle-xe \
+    --shm-size=1g \
+    -p 1521:1521 \
+    -e ORACLE_PWD=$SPRING_DATASOURCE_PASSWORD \
+    ${CURRENT_DATE}:for-test
+- wait_for 1521
+- docker logs -f oracle-xe &
+- sleep 150
+- cd ${root}/app
+- bash ./mvnw >/dev/null 2>&1
+- bash ./target/*.jar
+- docker rm -f -v oracle-xe

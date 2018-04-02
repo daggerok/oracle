@@ -13,6 +13,15 @@ bash build/libs/*.jar
 
 .maven
 ----
+bash ./mvnw
+java -jar target/*.jar
+
+bash ./mvnw; ./mvnw com.dkanejs.maven.plugins:docker-compose-maven-plugin:1.0.1:up
+bash ./mvnw com.dkanejs.maven.plugins:docker-compose-maven-plugin:1.0.1:down
+----
+
+.maven (old, with ojdbc6.jar)
+----
 bash ./mvn-install-oracle-driver.bash
 bash ./mvnw
 java -jar target/*.jar

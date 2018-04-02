@@ -26,12 +26,6 @@ ENV JAVA_OPTS="${JAVA_OPTS} ${JAVA_OPTS_ARGS}"
 ENTRYPOINT java ${JAVA_OPTS} -jar ./app.jar
 CMD /bin/bash
 EXPOSE 8080
-#ENTRYPOINT java -XX:+UnlockExperimentalVMOptions \
-#                -XX:+UseCGroupMemoryLimitForHeap \
-#                -XshowSettings:vm \
-#                -Djava.net.preferIPv4Stack=true \
-#                -jar ./app.jar
-#CMD /bin/bash
 HEALTHCHECK --timeout=2s \
             --retries=22 \
             CMD curl -f http://127.0.0.1:8080/actuator/health || exit 1
