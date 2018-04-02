@@ -1,0 +1,6 @@
+= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/oracle"]
+Automation build for docker hub
+
+NOTE: you can build same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
+
+TODO: add travis tests using some spring-boot / java app requires oracle database connection...

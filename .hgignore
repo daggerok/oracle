@@ -1,8 +1,14 @@
-.hg
+syntax: glob
+^.gradle/*
 .gradle
-build
-target
-out
+^.git/*
+.git
+*/build/*
+*/target/*
+.DS_Store
+Thumbs.db
+*/out/*
+^.idea/*
 .idea
 *.iml
 *.ipr
@@ -13,6 +19,8 @@ Thumbs.db
 *.class
 *.ctxt
 .mtj.tmp/
+^.mtj.tmp/*
+.mtj.tmp
 *.jar
 *.war
 *.ear
