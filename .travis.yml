@@ -1,11 +1,13 @@
 services:
 - docker
+
 env:
   global:
   - TERM=dumb
   - DOCKER_USERNAME=daggerok
   - DOCKER_IMAGE_NAME=oracle
   - secure: bL9hUeeCwKIRhq5FEt6INEzbPDSqOtP0J+owkPDQUUvux8FmvBBlPTWyobLjzKA+3hy4Om3ABdpoiKevatyOJJ+yx2FZuLU4pko/Tk58G4bTBJLIE9W2JhV2yJcvg1d/Mrzwgq6EYcPrUIXVqE9+lB9Hrduu4P4LemGrY0UDnzsumFcoIaVtQt7kEMLlEq4amNrnnmoZLYGGie3PcUhq26HFYKlWQ6rJihN2Nt2WJX9s7IqkMlCzikYZ4+uYEk6i9uwijF1+tkjWSxkuU1KRd51aQ/rF0xJdyP5eeWl049DPyJT4FI8E+F8r+qjHya7BUpxlouRWTRMyT3e0k3zDQ7htcu4AD3D/kipvZInpOqtTRzBdlCAAYRurqEwbAOA8fPb+eXikdILaf05jGnxTMMp6QPoi7dKjJQKSBWwF3EZDIfWDDYD6g2fEkgfJPB7OW3fd1+F/fms4Kj49XE+qER2OGBAr+HiHQ5QYMTdyzQYTy7r99EcilO3Dk39XT78pvfD3VqLC57qhM944EWEYIvWNi3z3P53tu2YateRzXBPZJAm3hn89SNnjOys3WZy+50BUmvfiayDhboc4t5qA5c4LXiC+NAlM2XN/Ne2rVCRiz+sIfksaxy1FKV5NLXLTI0iV7hEL48rBGiobW95yteQ8sjqFI8bANFowSF9U7h4=
+
 install: true
 before_install:
 - sudo apt update -y >/dev/null 2>&1 || true
@@ -29,15 +31,9 @@ script:
   if [ "master" == "${TRAVIS_BRANCH}" ]; then
     docker tag oracle/database:11.2.0.2-xe ${CURRENT_DATE}:for-test
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
-    docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-7-slim
-    docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-oraclelinux
-    docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest-oraclelinux-7-slim
   else
-    docker tag oracle/database:11.2.0.2-xe ${CURRENT_DATE}:for-test
+    docker tag oracle/database:${TRAVIS_BRANCH} ${CURRENT_DATE}:for-test
     docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}
-    docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}-7-slim
-    docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}-oraclelinux
-    docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}-oraclelinux-7-slim
   fi
 
 # test image

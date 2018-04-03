@@ -40,9 +40,9 @@ version: "2.1"
 services:
   oracle-xe:
     image: daggerok/oracle
+    shm_size: 1g
     environment:
       ORACLE_PWD: password
-    shm_size: 1g
     ports: ["1521:1521"]
     networks: [backing-services]
 
@@ -58,7 +58,7 @@ version: "2.1"
 
 services:
   oracle-xe:
-    image: daggerok/oracle
+    image: daggerok/oracle:11.2.0.2-xe
     shm_size: 1g
     environment:
       ORACLE_PWD: password
@@ -88,7 +88,7 @@ docker run --rm --name oracle-xe \
   -p 1521:1521 \
   -v $PWD/migrations:/opt/oracle/scripts/startup \
   -v /home/oracle/oradata:/opt/oracle/oradata \
-  daggerok/oracle
+  daggerok/oracle:11.2.0.2-xe
 ----
 
 The docker images can be configured to run scripts after setup and on startup.
