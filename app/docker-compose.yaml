@@ -3,7 +3,7 @@ version: "2.1"
 services:
 
   oracle-xe:
-    image: daggerok/oracle
+    image: daggerok/oracle:11.2.0.2-xe
     environment:
       ORACLE_PWD: password
     shm_size: 1g
