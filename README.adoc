@@ -1,4 +1,4 @@
-= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/oracle"]
+= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=xe["Build Status", link="https://travis-ci.org/daggerok/oracle"]
 Automation build for docker hub
 
 NOTE: you can build and prepare same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
@@ -10,7 +10,8 @@ docker run -d --rm --name oracle-xe \
   --shm-size=1g \
   -p 1521:1521 \
   -e ORACLE_PWD=password \
-  daggerok/oracle
+  daggerok/oracle:11.2.0.2-xe
+# daggerok/oracle:xe
 
 Parameters:
   --name         The name of the container (default: auto generated)
@@ -39,10 +40,10 @@ version: "2.1"
 
 services:
   oracle-xe:
-    image: daggerok/oracle
+    image: daggerok/oracle:xe
+    shm_size: 1g
     environment:
       ORACLE_PWD: password
-    shm_size: 1g
     ports: ["1521:1521"]
     networks: [backing-services]
 
@@ -58,7 +59,7 @@ version: "2.1"
 
 services:
   oracle-xe:
-    image: daggerok/oracle
+    image: daggerok/oracle:11.2.0.2-xe
     shm_size: 1g
     environment:
       ORACLE_PWD: password
@@ -68,7 +69,7 @@ services:
     volumes:
     - "oracle-xe-data:/u01/app/oracle/oradata"
     - "./db-startup-migration-scripts:/u01/app/oracle/scripts/startup"
-    - "./db-setup-migration-scripts:/u01/app/oracle/scripts/setup
+    - "./db-setup-migration-scripts:/docker-entrypoint-initdb.d/setup"
     networks: [backing-services]
     restart: unless-stopped
 
@@ -86,9 +87,9 @@ networks:
 ----
 docker run --rm --name oracle-xe \
   -p 1521:1521 \
-  -v $PWD/migrations:/opt/oracle/scripts/startup \
-  -v /home/oracle/oradata:/opt/oracle/oradata \
-  daggerok/oracle
+  -v $PWD/migrations:/docker-entrypoint-initdb.d/startup \
+  -v /path/to/oradata:/u01/app/oracle/oradata \
+  daggerok/oracle:xe
 ----
 
 The docker images can be configured to run scripts after setup and on startup.
