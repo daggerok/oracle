@@ -30,6 +30,7 @@ script:
 - |
   if [ "master" == "${TRAVIS_BRANCH}" ]; then
     docker tag oracle/database:11.2.0.2-xe ${CURRENT_DATE}:for-test
+    docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
     docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
   else
     docker tag oracle/database:${TRAVIS_BRANCH} ${CURRENT_DATE}:for-test
