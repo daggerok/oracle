@@ -49,7 +49,7 @@ script:
 - wait_for 1521
 - docker logs -f oracle-xe &
 - sleep 150
-- bash ${root}/app/gradlew -b ${root}/app/build.gradle >/dev/null 2>&1
+- bash ${root}/app/gradlew -b ${root}/app/build.gradle >/dev/null
 - bash ${root}/app/build/libs/*.jar
 - docker rm -f -v oracle-xe
 
@@ -71,6 +71,6 @@ after_success:
 - docker logs -f oracle-xe &
 - sleep 150
 - cd ${root}/app
-- bash ./mvnw >/dev/null 2>&1
+- bash ./mvnw >/dev/null
 - bash ./target/*.jar
 - docker rm -f -v oracle-xe
