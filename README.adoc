@@ -116,3 +116,35 @@ For example, in Flyway-style:
 - ...
 
 Note: The startup scripts will also be executed after the first time database setup is complete.
+
+== sqlplus
+
+.sqlplus Mac OS X installation
+[sources,bash]
+----
+wget https://github.com/daggerok/oracle/releases/download/oracle/sqlplus-macos.x64-12.2.0.1.0-2.zip
+unzip sqlplus-macos.x64-12.2.0.1.0-2.zip
+export PATH=$PWD/sqlplus:$PATH
+sqlplus -HV
+----
+
+.sqlplus connection and usage
+[sources,bash]
+----
+# docker run ... -e ORACLE_PWD=password ... daggerok/oracle
+
+sqlplus system/password@//0.0.0.0/XE
+
+SQL*Plus: Release 12.2.0.1.0 Production on Tue Apr 24 21:38:50 2018
+
+Copyright (c) 1982, 2017, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
+
+SQL> select * from dual;
+SQL> ...
+SQL> quit
+Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
+----
