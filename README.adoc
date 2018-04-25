@@ -75,7 +75,7 @@ services:
     volumes:
     - "oracle-xe-data:/u01/app/oracle/oradata"
     - "./db-startup-migration-scripts:/u01/app/oracle/scripts/startup"
-    - "./db-setup-migration-scripts:/u01/app/oracle/scripts/setup
+    - "./db-setup-migration-scripts:/u01/app/oracle/scripts/setup"
     networks: [backing-services]
     restart: unless-stopped
 
