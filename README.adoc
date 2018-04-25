@@ -151,7 +151,7 @@ Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit
 
 == apply sql migrations
 
-_required running oracle in docker, sqlplus installed and bash / cygwin shell_
+_required running oracle in docker, sqlplus installed, bash / cygwin shell_
 
 .try prepared sample with tablespace / user / DDL:
 [sources,bash]
