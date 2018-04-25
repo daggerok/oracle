@@ -16,61 +16,49 @@ before_install:
 - stop_any 1521 8080 80
 
 script:
+- echo skipped
 
-# build
-- export root=$(pwd)
-- wget -q -O docker-images-master.zip https://codeload.github.com/oracle/docker-images/zip/master
-- unzip docker-images-master.zip
-- wget -q -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/oracle-xe-11.2.0-1.0.x86_64.rpm.zip https://github.com/daggerok/oracle/releases/download/oracle/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
-- cd ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/
-- bash ./buildDockerImage.sh -v 11.2.0.2 -x
+## we cannot build that image using Travis CI:
 
-# tag
-- export CURRENT_DATE=$(date +%Y-%m-%d)
-- |
-  if [ "master" == "${TRAVIS_BRANCH}" ]; then
-    docker tag oracle/database:11.2.0.2-xe ${CURRENT_DATE}:for-test
-    docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
-    docker tag oracle/database:11.2.0.2-xe ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
-  else
-    docker tag oracle/database:${TRAVIS_BRANCH} ${CURRENT_DATE}:for-test
-    docker tag oracle/database:${TRAVIS_BRANCH} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}
-  fi
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#checkSpace.sh: ERROR - There is not enough space available in the docker container.
+#checkSpace.sh: The container needs at least 12 GB, but only 3 GB are available.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# test image
-- export SPRING_DATASOURCE_PASSWORD=${CURRENT_DATE}
-- docker images
-- >
-  docker run -d --rm --name oracle-xe \
-    --shm-size=1g \
-    -p 1521:1521 \
-    -e ORACLE_PWD=$SPRING_DATASOURCE_PASSWORD \
-    ${CURRENT_DATE}:for-test
-- wait_for 1521
-- docker logs -f oracle-xe &
-- sleep 150
-- bash ${root}/app/gradlew -b ${root}/app/build.gradle >/dev/null
-- bash ${root}/app/build/libs/*.jar
-- docker rm -f -v oracle-xe
 
-after_success:
+## but we still doing all these staps locally:
 
-# push OK image
-- echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
-- docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
+#- export root=$(pwd)
+#- wget -q -O docker-images-master.zip https://codeload.github.com/oracle/docker-images/zip/master
+#- unzip docker-images-master.zip
+#- wget -q -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/12.1.0.2/linuxamd64_12102_database_se2_1of2.zip https://github.com/daggerok/oracle/releases/download/oracle/linuxamd64_12102_database_se2_1of2.zip
+#- wget -q -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/12.1.0.2/linuxamd64_12102_database_se2_2of2.zip https://github.com/daggerok/oracle/releases/download/oracle/linuxamd64_12102_database_se2_2of2.zip
+#- cd ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/
+#- bash ./buildDockerImage.sh -v 12.1.0.2 -s
 
-# finally test pushed image
-- docker pull ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
-- >
-  docker run -d --rm --name oracle-xe \
-    --shm-size=1g \
-    -p 1521:1521 \
-    -e ORACLE_PWD=$SPRING_DATASOURCE_PASSWORD \
-    ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
-- wait_for 1521
-- docker logs -f oracle-xe &
-- sleep 150
-- cd ${root}/app
-- bash ./mvnw >/dev/null
-- bash ./target/*.jar
-- docker rm -f -v oracle-xe
+
+## tag and push:
+
+#- docker tag oracle/database:12.1.0.2-se2 daggerok/oracle
+#- docker tag oracle/database:12.1.0.2-se2 daggerok/oracle:latest
+#- docker tag oracle/database:12.1.0.2-se2 daggerok/oracle:12.1.0.2-se
+#- docker tag oracle/database:12.1.0.2-se2 daggerok/oracle:12.1.0.2-se2
+#- echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+#- docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
+
+### TODO: finally test pushed image:
+
+##- docker pull ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
+##- >
+##  docker run -d --rm --name oracle-se \
+##    --shm-size=1g \
+##    -p 1521:1521 \
+##    -e ORACLE_PWD=$SPRING_DATASOURCE_PASSWORD \
+##    ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
+##- wait_for 1521
+##- docker logs -f oracle-xe &
+##- sleep 150
+##- cd ${root}/app
+##- bash ./mvnw >/dev/null
+##- bash ./target/*.jar
+##- docker rm -f -v oracle-xe
