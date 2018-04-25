@@ -4,7 +4,7 @@ Automation build for docker hub
 NOTE: you can build and prepare same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
 
 .usage (docker)
-[sources,bash]
+[source,bash]
 ----
 docker run -d --rm --name oracle-xe \
   --shm-size=1g \
@@ -35,7 +35,7 @@ Parameters:
 ----
 
 .docker-compose usage (simple)
-[sources,yml]
+[source,yml]
 ----
 version: "2.1"
 
@@ -89,7 +89,7 @@ networks:
 
 
 .Running scripts after setup and on startup. Example mounts the local directory `./migrations` to `/opt/oracle/migration-scripts` which is then searched for custom startup scripts:
-[sources,bash]
+[source,bash]
 ----
 docker run --rm --name oracle-xe \
   -p 1521:1521 \
@@ -120,7 +120,7 @@ Note: The startup scripts will also be executed after the first time database se
 == sqlplus
 
 .sqlplus Mac OS X installation
-[sources,bash]
+[source,bash]
 ----
 wget https://github.com/daggerok/oracle/releases/download/oracle/sqlplus-macos.x64-12.2.0.1.0-2.zip
 unzip sqlplus-macos.x64-12.2.0.1.0-2.zip
@@ -129,7 +129,7 @@ sqlplus -HV
 ----
 
 .sqlplus connection and usage
-[sources,bash]
+[source,bash]
 ----
 # docker run ... -e ORACLE_PWD=password ... daggerok/oracle
 
@@ -154,7 +154,7 @@ Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit
 _required running oracle in docker, sqlplus installed, bash / cygwin shell_
 
 .try prepared sample with tablespace / user / DDL:
-[sources,bash]
+[source,bash]
 ----
 # run oracle for example with ORACLE_PWD: password
 # docker run ... -e ORACLE_PWD=password ... daggerok/oracle
