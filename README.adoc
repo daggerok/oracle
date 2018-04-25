@@ -35,7 +35,7 @@ Parameters:
 ----
 
 .docker-compose usage (simple)
-[sources,yaml]
+[sources,yml]
 ----
 version: "2.1"
 
@@ -59,7 +59,7 @@ networks:
 ----
 
 .docker-compose usage (advanced)
-[sources,yaml]
+[source,yaml]
 ----
 version: "2.1"
 
