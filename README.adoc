@@ -148,3 +148,19 @@ SQL> ...
 SQL> quit
 Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
 ----
+
+== apply sql migrations
+
+_required running oracle in docker, sqlplus installed and bash / cygwin shell_
+
+.try prepared sample for 1) create tablespace and user; 2) create needed schema:
+[sources,bash]
+----
+# run oracle for example with ORACLE_PWD: password
+# docker run ... -e ORACLE_PWD=password ... daggerok/oracle
+
+wget https://github.com/daggerok/oracle/releases/download/oracle/sqlplus-sample.zip
+unzip -d /tmp sqlplus-sample.zip
+bash /tmp/sqlplus-sample/sqlplus-cmd.bash
+# verify that `my_app` username / password schema should contains groups and users tables...
+----
