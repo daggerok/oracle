@@ -149,7 +149,7 @@ SQL> quit
 Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
 ----
 
-== apply (manually) sql migrations (using sqlplus)
+== apply (manually) sql migrations using sqlplus
 
 _required running oracle in docker, sqlplus installed, bash / cygwin shell_
 
