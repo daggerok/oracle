@@ -27,12 +27,11 @@ script:
 - export RESULT="oracle/database:11.2.0.2-xe"
 
 # test built image:
-- >
-  docker run -d --rm --name oracle-xe \
-    --shm-size=1g \
-    -p 1521:1521 \
-    -e ORACLE_PWD=password \
-    ${RESULT}
+- docker run -d --rm --name oracle-xe
+                     --shm-size=1g
+                     -p 1521:1521
+                     -e ORACLE_PWD=password
+                     ${RESULT}
 - wait_for 1521
 - docker logs -f oracle-xe &
 - sleep 85
@@ -44,6 +43,7 @@ after_success:
 # tag:
 - |
   if [ "master" == "${TRAVIS_BRANCH}" ]; then
+    export DOCKER_TAG=${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:xe
     export DOCKER_TAG=${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:latest
   else
     export DOCKER_TAG=${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TRAVIS_BRANCH}
@@ -54,18 +54,23 @@ after_success:
 - echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 - docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}
 
-# finally test tagged/pushed image:
+# finally test tagged / pushed image:
 - docker pull ${DOCKER_TAG}
-- >
-  docker run -d --rm --name oracle-xe \
-    --shm-size=1g \
-    -p 1521:1521 \
-    -e ORACLE_PWD=password \
-    ${DOCKER_TAG}
+- docker run -d --rm --name oracle-xe
+                     --shm-size=1g
+                     -p 1521:1521
+                     -e ORACLE_PWD=password
+                     ${DOCKER_TAG}
 - wait_for 1521
 - docker logs -f oracle-xe &
 - sleep 85
 - cd ${root}/app
-- bash ./mvnw >/dev/null
+- ./mvnw install:install-file
+          -Dfile=$(pwd)/.m2/repository/com/oracle/11.2.0.3/ojdbc6-11.2.0.3.jar
+          -DgroupId=com.oracle
+          -DartifactId=ojdbc6
+          -Dversion=11.2.0.3
+          -Dpackaging=jar
+- ./mvnw >/dev/null
 - bash ./target/*.jar
 - docker rm -f -v oracle-xe

@@ -1,17 +1,37 @@
-= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=xe["Build Status", link="https://travis-ci.org/daggerok/oracle"]
+= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/oracle"]
 Automation build for docker hub
 
+_Oracle Database 11g Release 2 Express Edition: 11.2.0.2-xe_
+
+- `daggerok/oracle:xe`
+- `daggerok/oracle:latest`
+- `daggerok/oracle:12.1.0.2`
+- `daggerok/oracle:12.1.0.2-xe`
+
+_Oracle Database 12c Release 1 Standard Edition (SE2): 12.1.0.2-se_
+
+- `daggerok/oracle:12.1.0.2-se2`
+- `daggerok/oracle:12.1.0.2-se`
+- `daggerok/oracle:se2`
+- `daggerok/oracle:se`
+- `daggerok/oracle`
+
 NOTE: you can build and prepare same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
+
+== 11.2.0.2 XE
 
 .usage (docker)
 [sources,bash]
 ----
-docker run -d --rm --name oracle-xe \
+docker run -d --rm \
+  --name oracle-xe \
   --shm-size=1g \
   -p 1521:1521 \
   -e ORACLE_PWD=password \
   daggerok/oracle:11.2.0.2-xe
+# daggerok/oracle:11.2.0.2
 # daggerok/oracle:xe
+# daggerok/oracle
 
 Parameters:
   --name         The name of the container (default: auto generated)
@@ -36,16 +56,23 @@ Parameters:
 .docker-compose usage (simple)
 [sources,yaml]
 ----
-version: "2.1"
+version: '2.1'
 
 services:
   oracle-xe:
-    image: daggerok/oracle:xe
+    image: daggerok/oracle
     shm_size: 1g
     environment:
       ORACLE_PWD: password
-    ports: ["1521:1521"]
+      APEX_PORT: 8080
+    ports:
+    - '1521:1521'
+    - '8080:8080'
     networks: [backing-services]
+    healthcheck:
+      test: curl -uSYSTEM:$$ORACLE_PWD -v http://127.0.0.1:$$APEX_PORT//apex/
+      timeout: 2s
+      retries: 100
 
 networks:
   backing-services:
@@ -81,7 +108,6 @@ networks:
     driver: bridge
 ----
 
-
 .Running scripts after setup and on startup. Example mounts the local directory `./migrations` to `/opt/oracle/migration-scripts` which is then searched for custom startup scripts:
 [sources,bash]
 ----
@@ -91,6 +117,154 @@ docker run --rm --name oracle-xe \
   -v /path/to/oradata:/u01/app/oracle/oradata \
   daggerok/oracle:xe
 ----
+
+== 12.1.0.2 SE (WIP)
+
+.usage (docker)
+[source,bash]
+----
+docker run -d --rm --name oracle-se \
+  --shm-size=1g \
+  -p 1521:1521 \
+  -p 5500:5500 \
+  -e ORACLE_SID=ORCLCDB \
+  -e ORACLE_PWD=password \
+  -e ORACLE_PDB=ORCLPDB1 \
+  -e ORACLE_CHARACTERSET=AL32UTF8 \
+  daggerok/oracle:12.1.0.2-se2
+# daggerok/oracle:12.1.0.2-se
+# daggerok/oracle
+
+Parameters:
+  --name         The name of the container (default: auto generated)
+  --shm-size     Amount of Linux shared memory
+  -p             The port mapping of the host port to the container port.
+                 Two ports are exposed: 1521 (Oracle Listener), 5500 (OEM Express)
+
+  -e ORACLE_SID  The Oracle Database SID that should be used (default: ORCLCDB)  The Oracle Database SYS, SYSTEM and PDB_ADMIN password (default: auto generated)
+  -e ORACLE_PWD  The Oracle Database SYS, SYSTEM and PDB_ADMIN password (default: auto generated)
+  -e ORACLE_PDB  The Oracle Database PDB name that should be used (default: ORCLPDB1)
+  -e ORACLE_CHARACTERSET
+                 The character set to use when creating the database (default: AL32UTF8)
+
+  -v /opt/oracle/oradata
+
+                 The data volume to use for the database.
+                 Has to be writable by the Unix "oracle" (uid: 54321) user inside the container!
+                 If omitted the database will not be persisted over container recreation.
+
+  -v /opt/oracle/scripts/startup | /docker-entrypoint-initdb.d
+  -v /opt/oracle/scripts/setup   | /docker-entrypoint-initdb.d
+
+                 Optional: A volume with custom scripts to be run after database startup.
+                 For further details see the "Running scripts after setup and on startup" section below.
+----
+
+.docker-compose usage (simple)
+[source,yml]
+----
+version: "2.1"
+
+services:
+  oracle-se:
+    image: daggerok/oracle
+    shm_size: 1g
+    environment:
+      ORACLE_PWD: password
+    ports: ["1521:1521"]
+    networks: [backing-services]
+    #healthcheck:
+    #  test: curl -uSYSTEM:$$ORACLE_PWD -v http://127.0.0.1:8080//apex/
+    #  interval: 15s
+    #  timeout: 2s
+    #  retries: 22
+
+networks:
+  backing-services:
+    driver: bridge
+----
+
+.docker-compose usage (advanced)
+[source,yaml]
+----
+version: "2.1"
+
+services:
+  oracle-se2:
+    image: daggerok/oracle:12.1.0.2-se2
+    shm_size: 1g
+    environment:
+      ORACLE_SID: xe
+      ORACLE_PWD: password
+    ports:
+    - "1521:1521"
+    - "5500:5500"
+    volumes:
+    - "oracle-se2-data:/opt/oracle/oradata"
+    - "./db-startup-migration-scripts:/opt/oracle/scripts/startup"
+    - "./db-setup-migration-scripts:/docker-entrypoint-initdb.d/setup"
+    networks: [backing-services]
+    restart: unless-stopped
+
+volumes:
+  oracle-se2-data: {}
+
+networks:
+  backing-services:
+    driver: bridge
+----
+
+.Running scripts after setup and on startup. Example mounts the local directory `./migrations` to `/opt/oracle/migration-scripts` which is then searched for custom startup scripts:
+[source,bash]
+----
+docker run --rm --name oracle-se \
+  -p 1521:1521 \
+  -v $PWD/migrations:/opt/oracle/scripts/startup \
+  -v /home/oracle/oradata:/opt/oracle/oradata \
+  daggerok/oracle:12.1.0.2-se2
+----
+
+== sqlplus
+
+.sqlplus usage
+[source,bash]
+----
+sqlplus sys/<your password>@//localhost:1521/<your SID> as sysdba
+sqlplus system/<your password>@//localhost:1521/<your SID>
+sqlplus pdbadmin/<your password>@//localhost:1521/<Your PDB name>
+----
+
+.sqlplus Mac OS X installation
+[source,bash]
+----
+wget https://github.com/daggerok/oracle/releases/download/oracle/sqlplus-macos.x64-12.2.0.1.0-2.zip
+unzip sqlplus-macos.x64-12.2.0.1.0-2.zip
+export PATH=$PWD/sqlplus:$PATH
+sqlplus -HV
+----
+
+.sqlplus connection and usage
+[source,bash]
+----
+# docker run ... -e ORACLE_PWD=password ... daggerok/oracle:11.2.0.2-xe
+
+sqlplus system/password@//0.0.0.0/XE
+
+SQL*Plus: Release 12.2.0.1.0 Production on Tue Apr 24 21:38:50 2018
+
+Copyright (c) 1982, 2017, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
+
+SQL> select * from dual;
+SQL> ...
+SQL> quit
+Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
+----
+
+== migratioons
 
 The docker images can be configured to run scripts after setup and on startup.
 Currently sh and sql extensions are supported.
@@ -110,3 +284,19 @@ For example, in Flyway-style:
 - ...
 
 Note: The startup scripts will also be executed after the first time database setup is complete.
+
+=== apply sql migrations manually using sqlplus
+
+_required running oracle in docker, sqlplus installed, bash / cygwin shell_
+
+.try prepared sample with tablespace / user / DDL:
+[source,bash]
+----
+# run oracle for example with ORACLE_PWD: password
+# docker run ... -e ORACLE_PWD=password ... daggerok/oracle:11.2.0.2-xe
+
+wget https://github.com/daggerok/oracle/releases/download/oracle/sqlplus-sample.zip
+unzip -d /tmp sqlplus-sample.zip
+bash /tmp/sqlplus-sample/sqlplus-cmd.bash
+# verify that `my_app` username / password schema should contains groups and users tables...
+----
