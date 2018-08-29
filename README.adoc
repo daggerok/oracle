@@ -1,14 +1,5 @@
-= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=11.2.0.2-xe["Build Status", link="https://travis-ci.org/daggerok/oracle"]
+= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=11.2.0.2["Build Status", link="https://travis-ci.org/daggerok/oracle"]
 Automation build for docker hub
-
-_Oracle Database 12c Release 1 Standard Edition (SE2): 12.1.0.2-se_
-
-- `daggerok/oracle:12.1.0.2-se2`
-- `daggerok/oracle:12.1.0.2-se`
-- `daggerok/oracle:latest`
-- `daggerok/oracle:se2`
-- `daggerok/oracle:se`
-- `daggerok/oracle`
 
 _Oracle Database 11g Release 2 Express Edition: 11.2.0.2-xe_
 
@@ -17,6 +8,14 @@ _Oracle Database 11g Release 2 Express Edition: 11.2.0.2-xe_
 - `daggerok/oracle:12.1.0.2`
 - `daggerok/oracle:12.1.0.2-xe`
 
+_Oracle Database 12c Release 1 Standard Edition (SE2): 12.1.0.2-se_
+
+- `daggerok/oracle:12.1.0.2-se2`
+- `daggerok/oracle:12.1.0.2-se`
+- `daggerok/oracle:se2`
+- `daggerok/oracle:se`
+- `daggerok/oracle`
+
 NOTE: you can build and prepare same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
 
 == 11.2.0.2 XE
@@ -24,12 +23,15 @@ NOTE: you can build and prepare same image by yourselves. link:https://github.co
 .usage (docker)
 [sources,bash]
 ----
-docker run -d --rm --name oracle-xe \
+docker run -d --rm \
+  --name oracle-xe \
   --shm-size=1g \
   -p 1521:1521 \
   -e ORACLE_PWD=password \
   daggerok/oracle:11.2.0.2-xe
+# daggerok/oracle:11.2.0.2
 # daggerok/oracle:xe
+# daggerok/oracle
 
 Parameters:
   --name         The name of the container (default: auto generated)
@@ -54,16 +56,23 @@ Parameters:
 .docker-compose usage (simple)
 [sources,yaml]
 ----
-version: "2.1"
+version: '2.1'
 
 services:
   oracle-xe:
-    image: daggerok/oracle:xe
+    image: daggerok/oracle
     shm_size: 1g
     environment:
       ORACLE_PWD: password
-    ports: ["1521:1521"]
+      APEX_PORT: 8080
+    ports:
+    - '1521:1521'
+    - '8080:8080'
     networks: [backing-services]
+    healthcheck:
+      test: curl -uSYSTEM:$$ORACLE_PWD -v http://127.0.0.1:$$APEX_PORT//apex/
+      timeout: 2s
+      retries: 100
 
 networks:
   backing-services:
@@ -124,7 +133,6 @@ docker run -d --rm --name oracle-se \
   -e ORACLE_CHARACTERSET=AL32UTF8 \
   daggerok/oracle:12.1.0.2-se2
 # daggerok/oracle:12.1.0.2-se
-# daggerok/oracle:latest
 # daggerok/oracle
 
 Parameters:
