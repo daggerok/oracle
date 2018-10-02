@@ -1,5 +1,13 @@
-= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/oracle"]
+= Oracle Database image:https://travis-ci.org/daggerok/oracle.svg?branch=prebuiltdb["Build Status", link="https://travis-ci.org/daggerok/oracle"]
 Automation build for docker hub
+
+_Oracle XE for rapid development_
+
+- `daggerok/oracle-xe`
+
+_Oracle 11.2.0.2-xe Prebuilt DB (no volumes to commit and push containers)_
+
+- `daggerok/oracle:prebuiltdb`
 
 _Oracle Database 11g Release 2 Express Edition: 11.2.0.2-xe_
 
@@ -17,6 +25,79 @@ _Oracle Database 12c Release 1 Standard Edition (SE2): 12.1.0.2-se_
 - `daggerok/oracle`
 
 NOTE: you can build and prepare same image by yourselves. link:https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance[see details]
+
+== 11.2.0.2 XE for rapid development
+
+.usage
+[source,bash]
+----
+docker container run \
+  --shm-size=1g \
+  -p 8080:8080 -p 1521:1521 \
+  -it --name oracle-xe \
+  daggerok/oracle-xe
+----
+
+NOTE: prebuilt `SYSTEM` username and `password` password.
+
+== 11.2.0.2 XE Prebuilt DB
+
+_Sometimes we wanna prepare our own Oracle Database with specific configurations or with some tests data included.
+But due to default Oracle Docker image
+link:https://github.com/oracle/docker-images/blob/f847a255a384fd78b187fb0ae7aecee528c36af5/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/Dockerfile.xe#L81[VOLUME instructions]
+we link:https://github.com/oracle/docker-images/issues/269[cannot just commit our container] and reuse it later.
+To fix that issue, I have prepared something for you :)_
+
+TIP: Here a guide how you can use `daggerok/oracle:prebuiltdb` base image to create and quickly run your own reusable
+containers
+
+.pull latest prepuiltdb image
+[source,bash]
+----
+docker pull daggerok/oracle:prebuiltdb
+----
+
+.start container with needed configurations
+[source,bash]
+----
+docker container run \
+  --shm-size=1g \
+  -p 8080:8080 -p 1521:1521 \
+  -e ORACLE_PWD=password \
+  -it --name oracle-xe \
+  daggerok/oracle:prebuiltdb
+----
+
+.wait until oracle database will be ready and gracefully stop oracle-xe container
+[source,bash]
+----
+docker container stop oracle-xe
+----
+
+.commit container as an reusable image
+[source,bash]
+----
+docker commit \
+  -a 'Maksim Kostromin <daggerok@gmail.com>' \
+  -m 'Oracle XE with credentials SYSTEM / password' \
+  oracle-xe daggerok/oracle-xe:latest
+----
+
+.publish image to docker hub
+[source,bash]
+----
+docker push daggerok/oracle-xe:latest
+----
+
+.now you can re-use it without additional configurations, justl ike so:
+[source,bash]
+----
+docker container run \
+  --shm-size=1g \
+  -p 8080:8080 -p 1521:1521 \
+  -it --name oracle-xe \
+  daggerok/oracle-xe
+----
 
 == 11.2.0.2 XE
 

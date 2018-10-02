@@ -8,10 +8,16 @@ env:
   - DOCKER_IMAGE_NAME=oracle
   - secure: bL9hUeeCwKIRhq5FEt6INEzbPDSqOtP0J+owkPDQUUvux8FmvBBlPTWyobLjzKA+3hy4Om3ABdpoiKevatyOJJ+yx2FZuLU4pko/Tk58G4bTBJLIE9W2JhV2yJcvg1d/Mrzwgq6EYcPrUIXVqE9+lB9Hrduu4P4LemGrY0UDnzsumFcoIaVtQt7kEMLlEq4amNrnnmoZLYGGie3PcUhq26HFYKlWQ6rJihN2Nt2WJX9s7IqkMlCzikYZ4+uYEk6i9uwijF1+tkjWSxkuU1KRd51aQ/rF0xJdyP5eeWl049DPyJT4FI8E+F8r+qjHya7BUpxlouRWTRMyT3e0k3zDQ7htcu4AD3D/kipvZInpOqtTRzBdlCAAYRurqEwbAOA8fPb+eXikdILaf05jGnxTMMp6QPoi7dKjJQKSBWwF3EZDIfWDDYD6g2fEkgfJPB7OW3fd1+F/fms4Kj49XE+qER2OGBAr+HiHQ5QYMTdyzQYTy7r99EcilO3Dk39XT78pvfD3VqLC57qhM944EWEYIvWNi3z3P53tu2YateRzXBPZJAm3hn89SNnjOys3WZy+50BUmvfiayDhboc4t5qA5c4LXiC+NAlM2XN/Ne2rVCRiz+sIfksaxy1FKV5NLXLTI0iV7hEL48rBGiobW95yteQ8sjqFI8bANFowSF9U7h4=
 
+addons:
+  apt:
+    packages:
+    - bash
+    - unzip
+    - wget
+    - curl
+
 install: true
 before_install:
-- sudo apt update -y >/dev/null 2>&1 || true
-- sudo apt install -y --no-install-recommends curl wget unzip bash >/dev/null 2>&1 || true
 - source <(curl -s https://raw.githubusercontent.com/daggerok/bash-functions/master/main.bash)
 - stop_any 1521 8080 80
 
@@ -19,10 +25,17 @@ script:
 
 # build oracle/database:11.2.0.2-xe image:
 - export root=$(pwd)
-- wget -q -O docker-images-master.zip https://codeload.github.com/oracle/docker-images/zip/master
+- wget -q -O docker-images-master.zip
+  https://codeload.github.com/oracle/docker-images/zip/master
 - unzip docker-images-master.zip
-- wget -q -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/oracle-xe-11.2.0-1.0.x86_64.rpm.zip https://github.com/daggerok/oracle/releases/download/oracle/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+- wget -q -O ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
+  https://github.com/daggerok/oracle/releases/download/oracle/oracle-xe-11.2.0-1.0.x86_64.rpm.zip
 - cd ${root}/docker-images-master/OracleDatabase/SingleInstance/dockerfiles/
+- echo 'read:\ https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/dockerfiles/11.2.0.2/Dockerfile.xe for details'
+- cat ./11.2.0.2/Dockerfile.xe|grep VOLUME
+- echo 'remove VOLUME instruction:\ VOLUME ["$ORACLE_BASE/oradata"]'
+- sed -i '/VOLUME\ \[\"\$ORACLE_BASE\/oradata\"\]/d' ./11.2.0.2/Dockerfile.xe
+- cat ./11.2.0.2/Dockerfile.xe|grep VOLUME || echo VOLUME instruction was removed.
 - bash ./buildDockerImage.sh -v 11.2.0.2 -x
 - export RESULT="oracle/database:11.2.0.2-xe"
 
